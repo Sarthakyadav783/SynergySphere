@@ -17,6 +17,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/20/solid'
 import Mytasks from '../components/Mytasks' // <-- Import Mytasks
+import MyProject from '../components/MyProject' // <-- Import MyProject
 
 const navigation = [
   { name: 'My Projects', href: '#', icon: HomeIcon, current: true },
@@ -461,6 +462,7 @@ export default function Dashboard() {
   const [navState, setNavState] = useState(navigation) // Track current selection
   const [search, setSearch] = useState('') // Add search state
   const [projectList, setProjectList] = useState(projects) // <-- Use state for projects
+  const [selectedProject, setSelectedProject] = useState(null) // <-- Track selected project
 
   // Function to handle navigation click
   function handleNavClick(item) {
@@ -482,6 +484,12 @@ export default function Dashboard() {
         project.id === id ? { ...project, pinned: !project.pinned } : project
       )
     )
+  }
+
+  // When a project is clicked, set selectedProject
+  function handleProjectClick(project) {
+    setSelectedProject(project)
+    setShowTasks(false)
   }
 
   // Filter projects based on search
@@ -838,6 +846,8 @@ export default function Dashboard() {
             {/* Render Mytasks if showTasks is true, else show the dashboard */}
             {showTasks ? (
               <Mytasks />
+            ) : selectedProject ? (
+              <MyProject project={selectedProject} onBack={() => setSelectedProject(null)} />
             ) : (
               <>
                 {/* Page title & actions */}
@@ -875,13 +885,17 @@ export default function Dashboard() {
                         >
                           {project.initials}
                         </div>
-                        <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-t border-r border-b border-gray-200 bg-white">
+                        <div
+                          className="flex flex-1 items-center justify-between truncate rounded-r-md border-t border-r border-b border-gray-200 bg-white cursor-pointer hover:bg-gray-50 transition"
+                          onClick={() => handleProjectClick(project)}
+                        >
                           <div className="flex-1 truncate px-4 py-2 text-sm">
-                            <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
+                            <span className="font-medium text-gray-900 hover:text-gray-600">
                               {project.title}
-                            </a>
+                            </span>
                             <p className="text-gray-500">{project.totalMembers} Members</p>
                           </div>
+                          {/* ...menu... */}
                           <Menu as="div" className="shrink-0 pr-2">
                             <MenuButton className="inline-flex size-8 items-center justify-center rounded-full bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2">
                               <span className="sr-only">Open options</span>
@@ -925,7 +939,10 @@ export default function Dashboard() {
                   <ul role="list" className="mt-3 divide-y divide-gray-100 border-t border-gray-200">
                     {filteredProjects.map((project) => (
                       <li key={project.id}>
-                        <a href="#" className="group flex items-center justify-between px-4 py-4 hover:bg-gray-50 sm:px-6">
+                        <div
+                          className="group flex items-center justify-between px-4 py-4 hover:bg-gray-50 sm:px-6 cursor-pointer"
+                          onClick={() => handleProjectClick(project)}
+                        >
                           <span className="flex items-center space-x-3 truncate">
                             <span
                               aria-hidden="true"
@@ -939,7 +956,7 @@ export default function Dashboard() {
                             aria-hidden="true"
                             className="ml-4 size-5 text-gray-400 group-hover:text-gray-500"
                           />
-                        </a>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -977,20 +994,25 @@ export default function Dashboard() {
                       </thead>
                       <tbody className="divide-y divide-gray-100 bg-white">
                         {filteredProjects.map((project) => (
-                          <tr key={project.id}>
+                          <tr
+                            key={project.id}
+                            className="cursor-pointer hover:bg-gray-50 transition"
+                            onClick={() => handleProjectClick(project)}
+                          >
                             <td className="w-full max-w-0 px-6 py-3 text-sm font-medium whitespace-nowrap text-gray-900">
                               <div className="flex items-center space-x-3 lg:pl-2">
                                 <div
                                   aria-hidden="true"
                                   className={classNames(project.bgColorClass, 'size-2.5 shrink-0 rounded-full')}
                                 />
-                                <a href="#" className="truncate hover:text-gray-600">
+                                <span className="truncate hover:text-gray-600">
                                   <span>
                                     {project.title} <span className="font-normal text-gray-500">in {project.team}</span>
                                   </span>
-                                </a>
+                                </span>
                               </div>
                             </td>
+                            {/* ...other columns unchanged... */}
                             <td className="px-6 py-3 text-sm font-medium text-gray-500">
                               <div className="flex items-center space-x-2">
                                 <div className="flex shrink-0 -space-x-1">
