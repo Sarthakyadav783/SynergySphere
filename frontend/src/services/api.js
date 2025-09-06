@@ -1,6 +1,9 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 const API_BASE_URL = `${BACKEND_URL}/api`;
-
+   // Temporary fix for mixed content
+   if (window.location.protocol === 'https:') {
+    window.location.href = window.location.href.replace('https:', 'http:');
+  }
 export const projectsAPI = {
   // Get all projects
   getAll: async (search = '') => {
