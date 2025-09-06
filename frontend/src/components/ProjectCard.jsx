@@ -41,7 +41,9 @@ export default function ProjectCard({
       'Data Analytics Dashboard': 'data_analytics_dashboard.png',
       'Website Optimization': 'website_optimization.png',
       'Security Audit System': 'security_audit_system.png',
-      'Financial Reporting Dashboard': 'financial_reporting_dashboard.png'
+      'Financial Reporting Dashboard': 'financial_reporting_dashboard.png',
+      'Employee Onboarding System': 'employee_onborading.png',
+      'Mobile App Development': 'mobile_app_dev.png'
     }
     
     const imageName = imageMap[project.title] || `project-${project.id}.jpg`
