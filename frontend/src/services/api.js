@@ -1,4 +1,5 @@
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+// Use HTTPS backend URL for production
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://54.235.7.119';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
 export const projectsAPI = {
