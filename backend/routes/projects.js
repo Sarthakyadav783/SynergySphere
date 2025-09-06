@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
       params = [`%${search}%`, search];
     }
     
-    sql += ` GROUP BY p.id ORDER BY p.updated_at DESC`;
+    sql += ` GROUP BY p.id ORDER BY p.pinned DESC, p.updated_at DESC`;
     
     const projects = await getMany(sql, params);
     
@@ -138,6 +138,38 @@ router.put('/:id', async (req, res) => {
     
     await update('projects', updateData, 'id = ?', [id]);
     res.json({ message: 'Project updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update project status
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    // Validate status
+    const validStatuses = ['planning', 'active', 'on_hold', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    
+    await update('projects', { status }, 'id = ?', [id]);
+    res.json({ message: 'Project status updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle project pin status
+router.patch('/:id/pin', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { pinned } = req.body;
+    
+    await update('projects', { pinned: pinned ? 1 : 0 }, 'id = ?', [id]);
+    res.json({ message: 'Project pin status updated successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

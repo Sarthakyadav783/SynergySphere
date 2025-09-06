@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { projectsAPI, usersAPI } from '../services/api'
+import { tasksAPI, usersAPI } from '../services/api'
 
-export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
+export default function NewTaskModal({ isOpen, onClose, onTaskCreated, projectId }) {
   const [formData, setFormData] = useState({
-    name: '',
-    tags: '',
-    projectManager: '3', // Default to Dipesh Thakran (user_id = 3)
-    deadline: '',
-    priority: 'medium',
-    image: '',
-    description: ''
+    title: '',
+    description: '',
+    assigned_to: '3', // Default to Dipesh Thakran
+    due_date: '',
+    priority: 'medium'
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -41,8 +39,8 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.name.trim()) {
-      setError('Project name is required')
+    if (!formData.title.trim()) {
+      setError('Task title is required')
       return
     }
 
@@ -50,40 +48,37 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
       setLoading(true)
       setError(null)
 
-      const projectData = {
-        name: formData.name.trim(),
+      const taskData = {
+        project_id: projectId,
+        title: formData.title.trim(),
         description: formData.description.trim(),
+        assigned_to: parseInt(formData.assigned_to),
+        due_date: formData.due_date || null,
         priority: formData.priority,
-        deadline: formData.deadline || null,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
-        project_manager: parseInt(formData.projectManager), // Convert to integer
-        image: formData.image.trim() || null,
-        created_by: 3 // Hard-coded to Dipesh Thakran (user_id = 3) for demo
+        created_by: 3 // Hard-coded to Dipesh Thakran for demo
       }
 
-      const result = await projectsAPI.create(projectData)
+      const result = await tasksAPI.create(taskData)
       
       // Reset form
       setFormData({
-        name: '',
-        tags: '',
-        projectManager: '3', // Reset to default (Dipesh)
-        deadline: '',
-        priority: 'medium',
-        image: '',
-        description: ''
+        title: '',
+        description: '',
+        assigned_to: '3',
+        due_date: '',
+        priority: 'medium'
       })
       
       // Notify parent component
-      onProjectCreated && onProjectCreated()
+      onTaskCreated && onTaskCreated()
       
       // Close modal
       onClose()
       
-      console.log('Project created successfully:', result)
+      console.log('Task created successfully:', result)
     } catch (err) {
-      setError('Failed to create project. Please try again.')
-      console.error('Error creating project:', err)
+      setError('Failed to create task. Please try again.')
+      console.error('Error creating task:', err)
     } finally {
       setLoading(false)
     }
@@ -100,13 +95,11 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
   const handleClose = () => {
     if (!loading) {
       setFormData({
-        name: '',
-        tags: '',
-        projectManager: '3', // Reset to default (Dipesh)
-        deadline: '',
-        priority: 'medium',
-        image: '',
-        description: ''
+        title: '',
+        description: '',
+        assigned_to: '3',
+        due_date: '',
+        priority: 'medium'
       })
       setError(null)
       onClose()
@@ -141,7 +134,7 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
             <div className="sm:flex sm:items-start">
               <div className="w-full mt-3 text-center sm:ml-0 sm:mt-0 sm:text-left">
                 <DialogTitle as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                  Create New Project
+                  Add New Task
                 </DialogTitle>
                 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -151,50 +144,50 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
                     </div>
                   )}
 
-                  {/* Name Field */}
+                  {/* Task Title */}
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
-                      Name *
+                    <label htmlFor="title" className="block text-sm font-medium leading-6 text-gray-900">
+                      Task Title *
                     </label>
                     <input
                       type="text"
-                      name="name"
-                      id="name"
-                      value={formData.name}
+                      name="title"
+                      id="title"
+                      value={formData.title}
                       onChange={handleInputChange}
                       disabled={loading}
                       className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6"
-                      placeholder="Enter project name"
+                      placeholder="Enter task title"
                       required
                     />
                   </div>
 
-                  {/* Tags Field */}
+                  {/* Description */}
                   <div>
-                    <label htmlFor="tags" className="block text-sm font-medium leading-6 text-gray-900">
-                      Tags
+                    <label htmlFor="description" className="block text-sm font-medium leading-6 text-gray-900">
+                      Description
                     </label>
-                    <input
-                      type="text"
-                      name="tags"
-                      id="tags"
-                      value={formData.tags}
+                    <textarea
+                      name="description"
+                      id="description"
+                      rows={3}
+                      value={formData.description}
                       onChange={handleInputChange}
                       disabled={loading}
                       className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6"
-                      placeholder="Auto Selection Dropdown"
+                      placeholder="Describe the task"
                     />
                   </div>
 
-                  {/* Project Manager Field */}
+                  {/* Assigned To */}
                   <div>
-                    <label htmlFor="projectManager" className="block text-sm font-medium leading-6 text-gray-900">
-                      Project Manager
+                    <label htmlFor="assigned_to" className="block text-sm font-medium leading-6 text-gray-900">
+                      Assign To
                     </label>
                     <select
-                      name="projectManager"
-                      id="projectManager"
-                      value={formData.projectManager}
+                      name="assigned_to"
+                      id="assigned_to"
+                      value={formData.assigned_to}
                       onChange={handleInputChange}
                       disabled={loading || usersLoading}
                       className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6"
@@ -209,28 +202,25 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
                         ))
                       )}
                     </select>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Select the project manager from available users
-                    </p>
                   </div>
 
-                  {/* Deadline Field */}
+                  {/* Due Date */}
                   <div>
-                    <label htmlFor="deadline" className="block text-sm font-medium leading-6 text-gray-900">
-                      Deadline
+                    <label htmlFor="due_date" className="block text-sm font-medium leading-6 text-gray-900">
+                      Due Date
                     </label>
                     <input
                       type="date"
-                      name="deadline"
-                      id="deadline"
-                      value={formData.deadline}
+                      name="due_date"
+                      id="due_date"
+                      value={formData.due_date}
                       onChange={handleInputChange}
                       disabled={loading}
                       className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6"
                     />
                   </div>
 
-                  {/* Priority Field */}
+                  {/* Priority */}
                   <div>
                     <label htmlFor="priority" className="block text-sm font-medium leading-6 text-gray-900">
                       Priority
@@ -275,49 +265,6 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
                     </div>
                   </div>
 
-                  {/* Image Field */}
-                  <div>
-                    <label htmlFor="image" className="block text-sm font-medium leading-6 text-gray-900">
-                      Image
-                    </label>
-                    <div className="mt-2 flex items-center space-x-3">
-                      <input
-                        type="text"
-                        name="image"
-                        id="image"
-                        value={formData.image}
-                        onChange={handleInputChange}
-                        disabled={loading}
-                        className="flex-1 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6"
-                        placeholder="Image URL or path"
-                      />
-                      <button
-                        type="button"
-                        className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                        disabled={loading}
-                      >
-                        Upload Image
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Description Field */}
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium leading-6 text-gray-900">
-                      Description
-                    </label>
-                    <textarea
-                      name="description"
-                      id="description"
-                      rows={4}
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                      className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6"
-                      placeholder="Stylish Jackal"
-                    />
-                  </div>
-
                   <div className="mt-6 flex justify-end space-x-3">
                     <button
                       type="button"
@@ -325,14 +272,14 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }) {
                       disabled={loading}
                       className="inline-flex justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
                     >
-                      Discard
+                      Cancel
                     </button>
                     <button
                       type="submit"
-                      disabled={loading || !formData.name.trim()}
+                      disabled={loading || !formData.title.trim()}
                       className="inline-flex justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
                     >
-                      {loading ? 'Saving...' : 'Save'}
+                      {loading ? 'Creating...' : 'Create Task'}
                     </button>
                   </div>
                 </form>

@@ -26,6 +26,37 @@ export const projectsAPI = {
     });
     if (!response.ok) throw new Error('Failed to create project');
     return response.json();
+  },
+
+  // Update project status
+  updateStatus: async (id, status) => {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (!response.ok) throw new Error('Failed to update project status');
+    return response.json();
+  },
+
+  // Toggle project pin status
+  togglePin: async (id, pinned) => {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}/pin`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned })
+    });
+    if (!response.ok) throw new Error('Failed to update pin status');
+    return response.json();
+  },
+
+  // Delete project
+  delete: async (id) => {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete project');
+    return response.json();
   }
 };
 
@@ -41,6 +72,17 @@ export const tasksAPI = {
   getMyTasks: async (userId) => {
     const response = await fetch(`${API_BASE_URL}/tasks/my-tasks/${userId}`);
     if (!response.ok) throw new Error('Failed to fetch user tasks');
+    return response.json();
+  },
+
+  // Create new task
+  create: async (taskData) => {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData)
+    });
+    if (!response.ok) throw new Error('Failed to create task');
     return response.json();
   }
 };
