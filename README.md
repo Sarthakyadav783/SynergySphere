@@ -5,6 +5,10 @@ SynergySphere is a team collaboration platform for project and task management w
 ---
 ![Dashboard](Dashboard.png)
 
+## Demo Video  
+[Click here to watch the demo](https://drive.google.com/file/d/1o2F-OenwxGAC_gnmDlY2z7RM06Hwnrxc/view?usp=sharing)
+
+
 ## Tech Stack
 
 - **Backend:** Node.js (Express) — deployed on AWS EC2
