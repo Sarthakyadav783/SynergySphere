@@ -3,6 +3,7 @@
 SynergySphere is a team collaboration platform for project and task management with threaded discussions.
 
 ---
+![Dashboard](Dashboard.png)
 
 ## Tech Stack
 
