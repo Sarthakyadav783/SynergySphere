@@ -16,6 +16,7 @@ import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/20/solid'
+import Mytasks from '../components/Mytasks' // <-- Import Mytasks
 
 const navigation = [
   { name: 'My Projects', href: '#', icon: HomeIcon, current: true },
@@ -449,7 +450,6 @@ const projects = [
     bgColorClass: 'bg-green-500',
   },
 ]
-const pinnedProjects = projects.filter((project) => project.pinned)
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -457,6 +457,38 @@ function classNames(...classes) {
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showTasks, setShowTasks] = useState(false) // State to toggle Mytasks
+  const [navState, setNavState] = useState(navigation) // Track current selection
+  const [search, setSearch] = useState('') // Add search state
+  const [projectList, setProjectList] = useState(projects) // <-- Use state for projects
+
+  // Function to handle navigation click
+  function handleNavClick(item) {
+    setShowTasks(item.name === 'My tasks')
+    // Update navigation current state
+    setNavState(navState =>
+      navState.map(nav =>
+        nav.name === item.name
+          ? { ...nav, current: true }
+          : { ...nav, current: false }
+      )
+    )
+  }
+
+  // Pin/unpin handler
+  function handlePinToggle(id) {
+    setProjectList(list =>
+      list.map(project =>
+        project.id === id ? { ...project, pinned: !project.pinned } : project
+      )
+    )
+  }
+
+  // Filter projects based on search
+  const filteredProjects = projectList.filter(project =>
+    project.title.toLowerCase().includes(search.toLowerCase())
+  )
+  const filteredPinnedProjects = filteredProjects.filter(project => project.pinned)
 
   return (
     <>
@@ -503,11 +535,12 @@ export default function Dashboard() {
               <div className="mt-5 h-0 flex-1 overflow-y-auto">
                 <nav className="px-2">
                   <div className="space-y-1">
-                    {navigation.map((item) => (
+                    {navState.map((item) => (
                       <a
                         key={item.name}
                         href={item.href}
                         aria-current={item.current ? 'page' : undefined}
+                        onClick={() => handleNavClick(item)}
                         className={classNames(
                           item.current
                             ? 'bg-gray-100 text-gray-900'
@@ -651,11 +684,12 @@ export default function Dashboard() {
             {/* Navigation */}
             <nav className="mt-6 px-3">
               <div className="space-y-1">
-                {navigation.map((item) => (
+                {navState.map((item) => (
                   <a
                     key={item.name}
-                    href={item.href}
+                    href="#"
                     aria-current={item.current ? 'page' : undefined}
+                    onClick={() => handleNavClick(item)}
                     className={classNames(
                       item.current ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
                       'group flex items-center rounded-md px-2 py-2 text-sm font-medium',
@@ -716,6 +750,8 @@ export default function Dashboard() {
                   placeholder="Search"
                   aria-label="Search"
                   className="col-start-1 row-start-1 block size-full rounded-md bg-white py-2 pr-3 pl-8 text-base text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
                 />
                 <MagnifyingGlassIcon
                   aria-hidden="true"
@@ -799,199 +835,222 @@ export default function Dashboard() {
             </div>
           </div>
           <main className="flex-1">
-            {/* Page title & actions */}
-            <div className="border-b border-gray-200 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-lg/6 font-medium text-gray-900 sm:truncate">Projects</h1>
-              </div>
-              <div className="mt-4 flex sm:mt-0 sm:ml-4">
-                <input
-                  type="text"
-                  placeholder="Search projects"
-                  className="order-1 ml-3 block rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 sm:order-0 sm:ml-0"
-                  // Optionally, add value/onChange for controlled input
-                />
-                <button
-                  type="button"
-                  className="order-0 inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 sm:order-1 sm:ml-3"
-                >
-                  New Project
-                </button>
-              </div>
-            </div>
-            {/* Pinned projects */}
-            <div className="mt-6 px-4 sm:px-6 lg:px-8">
-              <h2 className="text-sm font-medium text-gray-900">Pinned Projects</h2>
-              <ul role="list" className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
-                {pinnedProjects.map((project) => (
-                  <li key={project.id} className="relative col-span-1 flex rounded-md shadow-xs">
-                    <div
-                      className={classNames(
-                        project.bgColorClass,
-                        'flex w-16 shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white',
-                      )}
+            {/* Render Mytasks if showTasks is true, else show the dashboard */}
+            {showTasks ? (
+              <Mytasks />
+            ) : (
+              <>
+                {/* Page title & actions */}
+                <div className="border-b border-gray-200 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8">
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-lg/6 font-medium text-gray-900 sm:truncate">Projects</h1>
+                  </div>
+                  <div className="mt-4 flex sm:mt-0 sm:ml-4">
+                    <input
+                      type="text"
+                      placeholder="Search projects"
+                      className="order-1 ml-3 block rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 sm:order-0 sm:ml-0"
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="order-0 inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 sm:order-1 sm:ml-3"
                     >
-                      {project.initials}
-                    </div>
-                    <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-t border-r border-b border-gray-200 bg-white">
-                      <div className="flex-1 truncate px-4 py-2 text-sm">
-                        <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
-                          {project.title}
-                        </a>
-                        <p className="text-gray-500">{project.totalMembers} Members</p>
-                      </div>
-                      <Menu as="div" className="shrink-0 pr-2">
-                        <MenuButton className="inline-flex size-8 items-center justify-center rounded-full bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2">
-                          <span className="sr-only">Open options</span>
-                          <EllipsisVerticalIcon aria-hidden="true" className="size-5" />
-                        </MenuButton>
-                        <MenuItems
-                          transition
-                          className="absolute top-3 right-10 z-10 mx-3 mt-1 w-48 origin-top-right divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                      New Project
+                    </button>
+                  </div>
+                </div>
+                {/* Pinned projects */}
+                <div className="mt-6 px-4 sm:px-6 lg:px-8">
+                  <h2 className="text-sm font-medium text-gray-900">Pinned Projects</h2>
+                  <ul role="list" className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
+                    {filteredPinnedProjects.map((project) => (
+                      <li key={project.id} className="relative col-span-1 flex rounded-md shadow-xs">
+                        <div
+                          className={classNames(
+                            project.bgColorClass,
+                            'flex w-16 shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white',
+                          )}
                         >
-                          <div className="py-1">
-                            <MenuItem>
-                              <a
-                                href="#"
-                                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
-                              >
-                                View
-                              </a>
-                            </MenuItem>
+                          {project.initials}
+                        </div>
+                        <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-t border-r border-b border-gray-200 bg-white">
+                          <div className="flex-1 truncate px-4 py-2 text-sm">
+                            <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
+                              {project.title}
+                            </a>
+                            <p className="text-gray-500">{project.totalMembers} Members</p>
                           </div>
-                          <div className="py-1">
-                            <MenuItem>
-                              <a
-                                href="#"
-                                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
-                              >
-                                Removed from pinned
-                              </a>
-                            </MenuItem>
-                            <MenuItem>
-                              <a
-                                href="#"
-                                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
-                              >
-                                Share
-                              </a>
-                            </MenuItem>
-                          </div>
-                        </MenuItems>
-                      </Menu>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                          <Menu as="div" className="shrink-0 pr-2">
+                            <MenuButton className="inline-flex size-8 items-center justify-center rounded-full bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2">
+                              <span className="sr-only">Open options</span>
+                              <EllipsisVerticalIcon aria-hidden="true" className="size-5" />
+                            </MenuButton>
+                            <MenuItems
+                              transition
+                              className="absolute top-3 right-10 z-10 mx-3 mt-1 w-48 origin-top-right divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                            >
+                              <div className="py-1">
+                                <MenuItem>
+                                  <button
+                                    onClick={() => handlePinToggle(project.id)}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
+                                  >
+                                    {project.pinned ? 'Unpin from pinned' : 'Pin to pinned'}
+                                  </button>
+                                </MenuItem>
+                                <MenuItem>
+                                  <a
+                                    href="#"
+                                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
+                                  >
+                                    Share
+                                  </a>
+                                </MenuItem>
+                              </div>
+                            </MenuItems>
+                          </Menu>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-            {/* Projects list (only on smallest breakpoint) */}
-            <div className="mt-10 sm:hidden">
-              <div className="px-4 sm:px-6">
-                <h2 className="text-sm font-medium text-gray-900">Projects</h2>
-              </div>
-              <ul role="list" className="mt-3 divide-y divide-gray-100 border-t border-gray-200">
-                {projects.map((project) => (
-                  <li key={project.id}>
-                    <a href="#" className="group flex items-center justify-between px-4 py-4 hover:bg-gray-50 sm:px-6">
-                      <span className="flex items-center space-x-3 truncate">
-                        <span
-                          aria-hidden="true"
-                          className={classNames(project.bgColorClass, 'size-2.5 shrink-0 rounded-full')}
-                        />
-                        <span className="truncate text-sm/6 font-medium">
-                          {project.title} <span className="truncate font-normal text-gray-500">in {project.team}</span>
-                        </span>
-                      </span>
-                      <ChevronRightIcon
-                        aria-hidden="true"
-                        className="ml-4 size-5 text-gray-400 group-hover:text-gray-500"
-                      />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Projects table (small breakpoint and up) */}
-            <div className="mt-8 hidden sm:block">
-              <div className="inline-block min-w-full border-b border-gray-200 align-middle">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-t border-gray-200">
-                      <th
-                        scope="col"
-                        className="border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        <span className="lg:pl-2">Project</span>
-                      </th>
-                      <th
-                        scope="col"
-                        className="border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Members
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden border-b border-gray-200 bg-gray-50 px-6 py-3 text-right text-sm font-semibold text-gray-900 md:table-cell"
-                      >
-                        Last updated
-                      </th>
-                      <th
-                        scope="col"
-                        className="border-b border-gray-200 bg-gray-50 py-3 pr-6 text-right text-sm font-semibold text-gray-900"
-                      />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {projects.map((project) => (
-                      <tr key={project.id}>
-                        <td className="w-full max-w-0 px-6 py-3 text-sm font-medium whitespace-nowrap text-gray-900">
-                          <div className="flex items-center space-x-3 lg:pl-2">
-                            <div
+                {/* Projects list (only on smallest breakpoint) */}
+                <div className="mt-10 sm:hidden">
+                  <div className="px-4 sm:px-6">
+                    <h2 className="text-sm font-medium text-gray-900">Projects</h2>
+                  </div>
+                  <ul role="list" className="mt-3 divide-y divide-gray-100 border-t border-gray-200">
+                    {filteredProjects.map((project) => (
+                      <li key={project.id}>
+                        <a href="#" className="group flex items-center justify-between px-4 py-4 hover:bg-gray-50 sm:px-6">
+                          <span className="flex items-center space-x-3 truncate">
+                            <span
                               aria-hidden="true"
                               className={classNames(project.bgColorClass, 'size-2.5 shrink-0 rounded-full')}
                             />
-                            <a href="#" className="truncate hover:text-gray-600">
-                              <span>
-                                {project.title} <span className="font-normal text-gray-500">in {project.team}</span>
-                              </span>
-                            </a>
-                          </div>
-                        </td>
-                        <td className="px-6 py-3 text-sm font-medium text-gray-500">
-                          <div className="flex items-center space-x-2">
-                            <div className="flex shrink-0 -space-x-1">
-                              {project.members.map((member) => (
-                                <img
-                                  key={member.handle}
-                                  alt={member.name}
-                                  src={member.imageUrl}
-                                  className="size-6 max-w-none rounded-full ring-2 ring-white"
-                                />
-                              ))}
-                            </div>
-                            {project.totalMembers > project.members.length ? (
-                              <span className="shrink-0 text-xs/5 font-medium">
-                                +{project.totalMembers - project.members.length}
-                              </span>
-                            ) : null}
-                          </div>
-                        </td>
-                        <td className="hidden px-6 py-3 text-right text-sm whitespace-nowrap text-gray-500 md:table-cell">
-                          {project.lastUpdated}
-                        </td>
-                        <td className="px-6 py-3 text-right text-sm font-medium whitespace-nowrap">
-                          <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                            Edit
-                          </a>
-                        </td>
-                      </tr>
+                            <span className="truncate text-sm/6 font-medium">
+                              {project.title} <span className="truncate font-normal text-gray-500">in {project.team}</span>
+                            </span>
+                          </span>
+                          <ChevronRightIcon
+                            aria-hidden="true"
+                            className="ml-4 size-5 text-gray-400 group-hover:text-gray-500"
+                          />
+                        </a>
+                      </li>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </ul>
+                </div>
+
+                {/* Projects table (small breakpoint and up) */}
+                <div className="mt-8 hidden sm:block">
+                  <div className="inline-block min-w-full border-b border-gray-200 align-middle">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="border-t border-gray-200">
+                          <th
+                            scope="col"
+                            className="border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
+                          >
+                            <span className="lg:pl-2">Project</span>
+                          </th>
+                          <th
+                            scope="col"
+                            className="border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
+                          >
+                            Members
+                          </th>
+                          <th
+                            scope="col"
+                            className="hidden border-b border-gray-200 bg-gray-50 px-6 py-3 text-right text-sm font-semibold text-gray-900 md:table-cell"
+                          >
+                            Last updated
+                          </th>
+                          <th
+                            scope="col"
+                            className="border-b border-gray-200 bg-gray-50 py-3 pr-6 text-right text-sm font-semibold text-gray-900"
+                          />
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 bg-white">
+                        {filteredProjects.map((project) => (
+                          <tr key={project.id}>
+                            <td className="w-full max-w-0 px-6 py-3 text-sm font-medium whitespace-nowrap text-gray-900">
+                              <div className="flex items-center space-x-3 lg:pl-2">
+                                <div
+                                  aria-hidden="true"
+                                  className={classNames(project.bgColorClass, 'size-2.5 shrink-0 rounded-full')}
+                                />
+                                <a href="#" className="truncate hover:text-gray-600">
+                                  <span>
+                                    {project.title} <span className="font-normal text-gray-500">in {project.team}</span>
+                                  </span>
+                                </a>
+                              </div>
+                            </td>
+                            <td className="px-6 py-3 text-sm font-medium text-gray-500">
+                              <div className="flex items-center space-x-2">
+                                <div className="flex shrink-0 -space-x-1">
+                                  {project.members.map((member) => (
+                                    <img
+                                      key={member.handle}
+                                      alt={member.name}
+                                      src={member.imageUrl}
+                                      className="size-6 max-w-none rounded-full ring-2 ring-white"
+                                    />
+                                  ))}
+                                </div>
+                                {project.totalMembers > project.members.length ? (
+                                  <span className="shrink-0 text-xs/5 font-medium">
+                                    +{project.totalMembers - project.members.length}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </td>
+                            <td className="hidden px-6 py-3 text-right text-sm whitespace-nowrap text-gray-500 md:table-cell">
+                              {project.lastUpdated}
+                            </td>
+                            <td className="px-6 py-3 text-right text-sm font-medium whitespace-nowrap">
+                              <Menu as="div" className="relative inline-block text-left">
+                                <MenuButton className="inline-flex items-center rounded-full bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2">
+                                  <EllipsisVerticalIcon aria-hidden="true" className="size-5" />
+                                </MenuButton>
+                                <MenuItems
+                                  transition
+                                  className="absolute right-0 z-10 mt-2 w-40 origin-top-right divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                                >
+                                  <div className="py-1">
+                                    <MenuItem>
+                                      <button
+                                        onClick={() => handlePinToggle(project.id)}
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
+                                      >
+                                        {project.pinned ? 'Unpin from pinned' : 'Pin to pinned'}
+                                      </button>
+                                    </MenuItem>
+                                    <MenuItem>
+                                      <a
+                                        href="#"
+                                        className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
+                                      >
+                                        Edit
+                                      </a>
+                                    </MenuItem>
+                                  </div>
+                                </MenuItems>
+                              </Menu>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </main>
         </div>
       </div>
