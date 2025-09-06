@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { projectsAPI } from '../services/api'
 import NewProjectModal from '../components/NewProjectModal'
 import NewTaskModal from '../components/NewTaskModal'
+import ProjectCard from '../components/ProjectCard'
 import {
   Dialog,
   DialogBackdrop,
@@ -267,6 +268,9 @@ export default function Dashboard() {
   }
 
   const pinnedProjects = projects.filter((project) => project.pinned)
+  
+  // Debug: Log pinned projects
+  console.log('Pinned projects:', pinnedProjects)
 
   // Show project details inline instead of separate page
 
@@ -908,171 +912,67 @@ export default function Dashboard() {
               </div>
             ) : (
               /* Projects List View */
-              <>
-            {/* Pinned projects */}
-            <div className="mt-6 px-4 sm:px-6 lg:px-8">
-              <h2 className="text-sm font-medium text-gray-900">Pinned Projects</h2>
-              <ul role="list" className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
-                {pinnedProjects.map((project) => (
-                  <li key={project.id} className="relative col-span-1 flex rounded-md shadow-xs">
-                    <div
-                      className={classNames(
-                        project.bgColorClass,
-                        'flex w-16 shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white',
-                      )}
-                    >
-                      {project.initials}
+              <div>
+                {/* Pinned projects */}
+                {pinnedProjects.length > 0 && (
+                  <div className="mt-6 px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-sm font-medium text-gray-900 mb-4">Pinned Projects</h2>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                      {pinnedProjects.map((project) => (
+                        <ProjectCard
+                          key={project.id}
+                          project={project}
+                          onProjectClick={handleProjectClick}
+                          onTogglePin={handleTogglePin}
+                          onStatusUpdate={handleStatusUpdate}
+                          onDeleteProject={handleDeleteProject}
+                          getProjectStatusColor={getProjectStatusColor}
+                          getPriorityColor={getPriorityColor}
+                        />
+                      ))}
                     </div>
-                    <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-t border-r border-b border-gray-200 bg-white">
-                      <div className="flex-1 truncate px-4 py-2 text-sm">
-                            <button onClick={() => handleProjectClick(project.id)} className="font-medium text-gray-900 hover:text-gray-600">
-                          {project.title}
-                            </button>
-                        <p className="text-gray-500">{project.totalMembers} Members</p>
-                      </div>
-                      <Menu as="div" className="shrink-0 pr-2">
-                        <MenuButton className="inline-flex size-8 items-center justify-center rounded-full bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2">
-                          <span className="sr-only">Open options</span>
-                          <EllipsisVerticalIcon aria-hidden="true" className="size-5" />
-                        </MenuButton>
-                        <MenuItems
-                          transition
-                          className="absolute top-3 right-10 z-10 mx-3 mt-1 w-48 origin-top-right divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-                        >
-                          <div className="py-1">
-                            <MenuItem>
-                                  <button
-                                    onClick={() => handleProjectClick(project.id)}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
-                              >
-                                View
-                                  </button>
-                            </MenuItem>
-                          </div>
-                          <div className="py-1">
-                            <MenuItem>
-                              <a
-                                href="#"
-                                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
-                              >
-                                Removed from pinned
-                              </a>
-                            </MenuItem>
-                            <MenuItem>
-                              <a
-                                href="#"
-                                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
-                              >
-                                Share
-                              </a>
-                            </MenuItem>
-                          </div>
-                        </MenuItems>
-                      </Menu>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                  </div>
+                )}
 
-            {/* Projects table (small breakpoint and up) */}
-            <div className="mt-8 hidden sm:block">
-              <div className="inline-block min-w-full border-b border-gray-200 align-middle">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-t border-gray-200">
-                      <th
-                        scope="col"
-                        className="border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        <span className="lg:pl-2">Project</span>
-                      </th>
-                      <th
-                        scope="col"
-                        className="border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Members
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden border-b border-gray-200 bg-gray-50 px-6 py-3 text-center text-sm font-semibold text-gray-900 md:table-cell"
-                      >
-                        Status
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden border-b border-gray-200 bg-gray-50 px-6 py-3 text-right text-sm font-semibold text-gray-900 md:table-cell"
-                      >
-                        Last updated
-                      </th>
-                      <th
-                        scope="col"
-                        className="border-b border-gray-200 bg-gray-50 py-3 pr-6 text-right text-sm font-semibold text-gray-900"
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
+                {/* Projects Cards Grid */}
+                <div className="mt-8 px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                     {projects.map((project) => (
-                      <tr key={project.id}>
-                        <td className="w-full max-w-0 px-6 py-3 text-sm font-medium whitespace-nowrap text-gray-900">
-                          <div className="flex items-center space-x-3 lg:pl-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleTogglePin(project.id, project.pinned)
-                              }}
-                              className="text-gray-400 hover:text-yellow-500"
-                            >
-                              {project.pinned ? (
-                                <StarIconSolid className="h-4 w-4 text-yellow-500" />
-                              ) : (
-                                <StarIconOutline className="h-4 w-4" />
-                              )}
-                            </button>
-                            <div
-                              aria-hidden="true"
-                              className={classNames(project.bgColorClass, 'size-2.5 shrink-0 rounded-full')}
-                            />
-                            <button onClick={() => handleProjectClick(project.id)} className="truncate hover:text-gray-600">
-                              <span>
-                                {project.title} <span className="font-normal text-gray-500">in {project.team}</span>
-                              </span>
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-6 py-3 text-sm font-medium text-gray-500">
-                              <span>+{project.totalMembers}</span>
-                        </td>
-                        <td className="hidden px-6 py-3 text-center text-sm whitespace-nowrap text-gray-500 md:table-cell">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getProjectStatusColor(project.status || 'planning')}`}>
-                            {(project.status || 'planning').replace('_', ' ')}
-                              </span>
-                        </td>
-                        <td className="hidden px-6 py-3 text-right text-sm whitespace-nowrap text-gray-500 md:table-cell">
-                          {project.lastUpdated}
-                        </td>
-                        <td className="px-6 py-3 text-right text-sm font-medium whitespace-nowrap">
-                          <select
-                            value={project.status || 'planning'}
-                            onChange={(e) => handleStatusUpdate(project.id, e.target.value)}
-                            className="text-xs border-gray-300 rounded-md"
-                          >
-                            <option value="planning">Planning</option>
-                            <option value="active">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="on_hold">On Hold</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                      </tr>
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        onProjectClick={handleProjectClick}
+                        onTogglePin={handleTogglePin}
+                        onStatusUpdate={handleStatusUpdate}
+                        onDeleteProject={handleDeleteProject}
+                        getProjectStatusColor={getProjectStatusColor}
+                        getPriorityColor={getPriorityColor}
+                      />
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                  
+                  {projects.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="mx-auto h-12 w-12 text-gray-400">
+                        <HomeIcon className="h-12 w-12" />
+                      </div>
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">No projects found</h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Get started by creating a new project.
+                      </p>
+                      <div className="mt-6">
+                        <button
+                          onClick={handleNewProject}
+                          className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500"
+                        >
+                          <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
+                          New Project
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-              </>
             )}
           </main>
         </div>
